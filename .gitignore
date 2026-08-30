@@ -3,3 +3,13 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+include/GUI
+include/EPD_SPI.h
+include/EPD.h
+include/ESP32epdx.h
+include/IMAGE.h
+
+src/GUI
+src/EPD_SPI.cpp
+src/EPD.cpp
