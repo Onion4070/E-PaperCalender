@@ -1,18 +1,40 @@
-#include <Arduino.h>
+#include <ESP32epdx.h>
+#include <SPI.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#include "EPD.h"
+#include "DrawCalendar.h"
+
+#define EPD_BUSY A14
+#define EPD_RST  A15
+#define EPD_DC   A16
+#define EPD_CS   A17
+
+DrawCalendar calendar;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+    pinMode(EPD_BUSY, INPUT);
+    pinMode(EPD_RST, OUTPUT);
+    pinMode(EPD_DC, OUTPUT);
+    pinMode(EPD_CS, OUTPUT);
+
+    SPI.begin(
+        EPD_SCK,   // SCK
+        -1,        // MISO unused
+        EPD_MOSI,  // MOSI / SDI
+        EPD_CS     // CS
+    );
+
+    SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+
+    // カレンダー初期化
+    calendar.begin();
+
+    // カレンダー描画
+    EPD_init();
+    calendar.display();
+    EPD_DeepSleep();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+    
 }
