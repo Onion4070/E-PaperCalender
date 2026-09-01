@@ -14,9 +14,12 @@ public:
 
     // 初期化
     void begin();
+    
+    void setYearMonth(int year, int month);
 
     // カレンダーの枠を描画してEPDへ送る
     void display();
+
 
 private:
     // Frame buffer
@@ -46,8 +49,8 @@ private:
     static constexpr int GRID_ROWS = 6;
 
     // 年月
-    int year_;
-    int month_;
+    int year_ = 1900;
+    int month_ = 1;
 
     // 内部描画関数
     void drawLineGlobal(
@@ -61,6 +64,12 @@ private:
     void drawCalendarFrame(
         int yOffset
     );
+
+    void drawWeekdays(int yOffset);
+
+    bool isLeapYear(int year);
+    int getDaysInMonth(int year, int month);
+    int getFirstWeekdayOfMonth(int year, int month);
 };
 
 #endif

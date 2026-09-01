@@ -3,7 +3,10 @@
 #include "EPD.h"
 
 DrawCalendar::DrawCalendar() {
+
 }
+
+// --- Public functions ---
 
 // バッファ初期化
 void DrawCalendar::begin() {
@@ -20,11 +23,16 @@ void DrawCalendar::begin() {
     Paint_SelectImage(image_);
 }
 
-// Public drawing function
+void DrawCalendar::setYearMonth(int year, int month) {
+    year_ = year;
+    month_ = month;
+}
+
 void DrawCalendar::display() {
     // 上半分
     Paint_Clear(WHITE0);
     drawCalendarFrame(0);
+    drawWeekdays(0);
     PIC_display_Half1(image_);
 
     // 下半分
@@ -33,7 +41,9 @@ void DrawCalendar::display() {
     PIC_display_Half2(image_);
 }
 
+// --- end public functions ---
 
+// --- Private functions ---
 // Global coordinate -> half-buffer coordinate
 void DrawCalendar::drawLineGlobal(
     int x1,
@@ -188,3 +198,85 @@ void DrawCalendar::drawCalendarFrame(int yOffset) {
         );
     }
 }
+
+void DrawCalendar::drawWeekdays(int yOffset) {
+    // 曜日表示の描画
+    static const char* weekdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    constexpr int calendarWidth = DRAW_RIGHT - DRAW_LEFT;
+    constexpr int headerBottom = DRAW_TOP + HEADER_HEIGHT;
+
+    for (int col = 0; col < GRID_COLS; col++) {
+        int cellLeft = DRAW_LEFT + col * calendarWidth / GRID_COLS;
+        int cellRight = DRAW_LEFT + (col + 1) * calendarWidth / GRID_COLS;
+        int cellWidth = cellRight - cellLeft;
+
+        // Font20で3文字分
+        int textWidth = 3 * Font20.Width;
+
+        // 各曜日セルの中央に配置
+        int x = cellLeft + (cellWidth - textWidth) / 2;
+        int y = headerBottom + (WEEKDAY_HEIGHT - Font20.Height) / 2;
+
+        // 現在描画中の半画面に存在しなければ描画しない
+        if (y < yOffset || y >= yOffset + HALF_HEIGHT) {
+            continue;
+        }
+
+        UWORD color = (col == 0) ? RED0 : BLACK0; // 日曜日は赤色
+        Paint_DrawString_EN(
+            x, 
+            y - yOffset,
+            weekdays[col],
+            &Font20,
+            color,
+            WHITE0
+        );
+    }
+}
+
+bool DrawCalendar::isLeapYear(int year) {
+    return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
+}
+
+int DrawCalendar::getDaysInMonth(int year, int month) {
+    static const int daysInMonth[] = {
+        31, // January
+        28, // February (non-leap year)
+        31, // March
+        30, // April
+        31, // May
+        30, // June
+        31, // July
+        31, // August
+        30, // September
+        31, // October
+        30, // November
+        31  // December
+    };
+
+    if (month < 1 || month > 12) {
+        return -1; // Invalid month
+    }
+
+    if (month == 2 && isLeapYear(year)) {
+        return 29; // February in a leap year
+    }
+
+    return daysInMonth[month - 1];
+}
+
+int DrawCalendar::getFirstWeekdayOfMonth(int year, int month) {
+    // ツェラーの公式を用いて1日目の曜日を計算
+    if (month < 3) {
+        month += 12;
+        year--;
+    }
+    int k = year % 100;
+    int j = year / 100;
+    int h = (1 + (13 * (month + 1)) / 5 + k + (k / 4) + (j / 4) - (2 * j)) % 7;
+    //       ^ day = 1
+
+    // Convert to 0=Sun, 1=Mon, ..., 6=Sat
+    return (h + 6) % 7;
+}
+// --- end private functions ---
