@@ -28,6 +28,10 @@ void DrawCalendar::setYearMonth(int year, int month) {
     month_ = month;
 }
 
+void DrawCalendar::setWeekStart(Weekday start) {
+    weekStart_ = start;
+}
+
 void DrawCalendar::display() {
     // 上半分
     Paint_Clear(WHITE0);
@@ -222,11 +226,14 @@ void DrawCalendar::drawWeekdays(int yOffset) {
             continue;
         }
 
-        UWORD color = (col == 0) ? RED0 : BLACK0; // 日曜日は赤色
+        int weekday = (weekStart_ + col) % GRID_COLS;
+        const char* text = weekdays[weekday];
+
+        UWORD color = (weekday == SUNDAY) ? RED0 : BLACK0; // 日曜日は赤色
         Paint_DrawString_EN(
             x, 
             y - yOffset,
-            weekdays[col],
+            text,
             &Font20,
             color,
             WHITE0
@@ -278,5 +285,9 @@ int DrawCalendar::getFirstWeekdayOfMonth(int year, int month) {
 
     // Convert to 0=Sun, 1=Mon, ..., 6=Sat
     return (h + 6) % 7;
+}
+
+int DrawCalendar::weekdayToColumn(Weekday weekday) {
+    return (weekday - weekStart_ + GRID_COLS) % GRID_COLS;
 }
 // --- end private functions ---

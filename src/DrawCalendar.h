@@ -7,6 +7,16 @@
 
 #include <ESP32epdx.h>
 
+enum Weekday {
+    SUNDAY = 0,
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY
+};
+
 // Draw呼び出し前にEPD_Init()を，呼び出し後にEPD_DeepSleep()を呼ぶこと
 class DrawCalendar {
 public:
@@ -16,6 +26,9 @@ public:
     void begin();
     
     void setYearMonth(int year, int month);
+
+    // 週の開始曜日を設定
+    void setWeekStart(Weekday start);
 
     // カレンダーの枠を描画してEPDへ送る
     void display();
@@ -52,6 +65,8 @@ private:
     int year_ = 1900;
     int month_ = 1;
 
+    Weekday weekStart_ = SUNDAY; // 週の開始曜日
+
     // 内部描画関数
     void drawLineGlobal(
         int x1,
@@ -70,6 +85,7 @@ private:
     bool isLeapYear(int year);
     int getDaysInMonth(int year, int month);
     int getFirstWeekdayOfMonth(int year, int month);
+    int weekdayToColumn(Weekday weekday);
 };
 
 #endif

@@ -29,6 +29,7 @@ void setup() {
     // カレンダー初期化
     calendar.begin();
     calendar.setYearMonth(2024, 6); // 年月を設定
+    calendar.setWeekStart(MONDAY);  // 週の開始曜日を設定
 
     // カレンダー描画
     EPD_init();
