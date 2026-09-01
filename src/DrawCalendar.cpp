@@ -37,11 +37,14 @@ void DrawCalendar::display() {
     Paint_Clear(WHITE0);
     drawCalendarFrame(0);
     drawWeekdays(0);
+    drawDates(0);
     PIC_display_Half1(image_);
 
     // 下半分
     Paint_Clear(WHITE0);
     drawCalendarFrame(HALF_HEIGHT);
+    // drawWeekdays(HALF_HEIGHT);   // 曜日は上半分にしか描画されない
+    drawDates(HALF_HEIGHT);
     PIC_display_Half2(image_);
 }
 
@@ -236,6 +239,42 @@ void DrawCalendar::drawWeekdays(int yOffset) {
             text,
             &Font20,
             color,
+            WHITE0
+        );
+    }
+}
+
+void DrawCalendar::drawDates(int yOffset) {
+    constexpr int calendarWidth = DRAW_RIGHT - DRAW_LEFT;
+    constexpr int calendarHeight = DRAW_BOTTOM - GRID_TOP;
+
+    int days = getDaysInMonth(year_, month_);
+    int firstWeekday = getFirstWeekdayOfMonth(year_, month_);
+    int firstColumn = weekdayToColumn((Weekday)firstWeekday);
+
+    for (int day = 1; day <= days; day++) {
+        int idx = firstColumn + (day - 1);
+        int row = idx / GRID_COLS;
+        int col = idx % GRID_COLS;
+
+        int cellLeft = DRAW_LEFT + col * calendarWidth / GRID_COLS;
+        int cellTop = GRID_TOP + row * calendarHeight / GRID_ROWS;
+
+        int x = cellLeft + DATE_MARGIN_X;
+        int y = cellTop + DATE_MARGIN_Y;
+
+        // 現在描画中の半画面に存在しなければ描画しない
+        if (y < yOffset || y >= yOffset + HALF_HEIGHT) {
+            continue;
+        }
+
+        // 日付を描画
+        Paint_DrawNum(
+            x,
+            y - yOffset,
+            day,
+            &Font16,
+            BLACK0,
             WHITE0
         );
     }

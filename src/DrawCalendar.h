@@ -61,6 +61,10 @@ private:
     static constexpr int GRID_COLS = 7;
     static constexpr int GRID_ROWS = 6;
 
+    // 日付余白
+    static constexpr int DATE_MARGIN_X = 6;
+    static constexpr int DATE_MARGIN_Y = 4;
+
     // 年月
     int year_ = 1900;
     int month_ = 1;
@@ -76,11 +80,9 @@ private:
         int yOffset
     );
 
-    void drawCalendarFrame(
-        int yOffset
-    );
-
+    void drawCalendarFrame(int yOffset);
     void drawWeekdays(int yOffset);
+    void drawDates(int yOffset);
 
     bool isLeapYear(int year);
     int getDaysInMonth(int year, int month);
