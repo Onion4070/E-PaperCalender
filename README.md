@@ -4,6 +4,13 @@
 ## Setup
 ESP32epdxのライブラリを利用します．`include/`に`GUI/*.h`, `EPD_SPI.h`, `EPD.h`, `EPS32epdx.h`, `IMAGE.h`を，`src`に`GUI/*.cpp`, `EPD_SPI.cpp`, `EPD.cpp`を配置してください．また`platformio.ini`の`build_flags`はESP32-C3用にピン定義をしています．使用するボードに合わせて適宜書き換えてください．
 
+東雲フォントをC++配列に変換する必要があります．スクリプトを使用して変換します．
+プロジェクトルートに移動し，以下のコマンドを実行します．
+```bash
+python scripts/bdf2cpp.py
+```
+`include`に`ShinonomeFontData.h`が生成されればOKです．
+
 ### Reqire modification
 `GUI_Paint.cpp`内の`Paint_DrawPoint()`にオフセットの問題が含まれることを確認しました．
 264行目以降の`Dot_Style == DOT_FILL_AROUND`がヒットする際のfor文内を以下のように変更してください．
