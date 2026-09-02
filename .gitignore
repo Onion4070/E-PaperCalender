@@ -4,6 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 
+# GoodDisplay
 include/GUI
 include/EPD_SPI.h
 include/EPD.h
@@ -13,3 +14,7 @@ include/IMAGE.h
 src/GUI
 src/EPD_SPI.cpp
 src/EPD.cpp
+
+# ShinonomeFont
+include/ShinonomeFontData.h
+src/ShinonomeFontData.cpp
