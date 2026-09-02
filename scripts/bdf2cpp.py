@@ -4,7 +4,6 @@ FULL_BDF = Path("fonts/shnmk16.bdf")
 HALF_BDF = Path("fonts/shnm8x16r.bdf")
 
 OUT_H = Path("include/ShinonomeFontData.h")
-OUT_CPP = Path("src/ShinonomeFontData.cpp")
 
 
 def jis0208_to_unicode(code):
@@ -89,8 +88,8 @@ def main():
 
     glyphs = sorted(unique.values(), key=lambda g: g[0])
 
-    OUT_H.write_text(
-"""\
+    with OUT_H.open("w", encoding="utf-8") as f:
+        f.write("""\
 #pragma once
 
 #include <Arduino.h>
@@ -101,25 +100,18 @@ struct ShinonomeGlyphIndex {
     uint8_t width;
 };
 
-extern const uint8_t shinonomeBitmap[];
-extern const ShinonomeGlyphIndex shinonomeIndex[];
-extern const uint16_t SHINONOME_GLYPH_COUNT;
-
 constexpr int SHINONOME_HEIGHT = 16;
-""",
-        encoding="utf-8",
-    )
 
-    with OUT_CPP.open("w", encoding="utf-8") as f:
-        f.write('#include "ShinonomeFontData.h"\n\n')
-        f.write("const uint8_t shinonomeBitmap[] PROGMEM = {\n")
+""")
+        # bitmap本体
+        f.write("inline const uint8_t shinonomeBitmap[] PROGMEM = {\n")
 
         offset = 0
         indices = []
 
         for codepoint, width, bitmap in glyphs:
-            # 何らかの文字で囲むこと(\がMutli Line Comment判定となるため)
-            f.write(f"    // U+{codepoint:04X} [{chr(codepoint)}]\n    ")
+            # '\' が行末に来ないよう [] で囲む
+            f.write(f"    // U+{codepoint:04X} [{chr(codepoint)}]\n" f"    ")
             f.write(", ".join(f"0x{b:02X}" for b in bitmap))
             f.write(",\n")
 
@@ -127,13 +119,17 @@ constexpr int SHINONOME_HEIGHT = 16;
             offset += len(bitmap)
 
         f.write("};\n\n")
-        f.write("const ShinonomeGlyphIndex " "shinonomeIndex[] PROGMEM = {\n")
+
+        # Unicode -> bitmap位置
+        f.write("inline const ShinonomeGlyphIndex " "shinonomeIndex[] PROGMEM = {\n")
 
         for codepoint, offset, width in indices:
             f.write(f"    {{ 0x{codepoint:04X}, " f"{offset}, {width} }},\n")
 
         f.write("};\n\n")
-        f.write(f"const uint16_t SHINONOME_GLYPH_COUNT = " f"{len(glyphs)};\n")
+
+        # 文字数
+        f.write("inline constexpr uint16_t " f"SHINONOME_GLYPH_COUNT = {len(glyphs)};\n")
 
     print(f"{len(glyphs)} glyphs generated")
 
