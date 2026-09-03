@@ -1,7 +1,27 @@
 from pathlib import Path
 
-FULL_BDF = Path("fonts/shnmk16.bdf")
-HALF_BDF = Path("fonts/shnm8x16r.bdf")
+FONT_SIZE = 12
+
+FONT_FILES = {
+    12: (
+        Path("fonts/shnm6x12r.bdf"),
+        Path("fonts/shnmk12.bdf"),
+        6,
+        12,
+    ),
+    14: (
+        Path("fonts/shnm7x14r.bdf"),
+        Path("fonts/shnmk14.bdf"),
+        7,
+        14,
+    ),
+    16: (
+        Path("fonts/shnm8x16.bdf"),
+        Path("fonts/shnmk16.bdf"),
+        8,
+        16,
+    ),
+}
 
 OUT_H = Path("include/ShinonomeFontData.h")
 
@@ -56,7 +76,8 @@ def read_bdf(path, width, converter):
             for row in bitmap:
                 value = int(row, 16)
 
-                if width == 8:
+                # 幅~8->1byte, 幅~16->2byte
+                if width <= 8:
                     data.append(value)
                 else:
                     data.append((value >> 8) & 0xFF)
@@ -73,9 +94,11 @@ def read_bdf(path, width, converter):
 
 
 def main():
+    half_bdf, full_bdf, half_width, full_width = FONT_FILES[FONT_SIZE]
+
     glyphs = []
-    glyphs += read_bdf(HALF_BDF, 8, jis0201_to_unicode)
-    glyphs += read_bdf(FULL_BDF, 16, jis0208_to_unicode)
+    glyphs += read_bdf(half_bdf, half_width, jis0201_to_unicode)
+    glyphs += read_bdf(full_bdf, full_width, jis0208_to_unicode)
 
     # Unicodeが重複した場合は先に入った半角側を優先
     unique = {}
@@ -89,18 +112,19 @@ def main():
     glyphs = sorted(unique.values(), key=lambda g: g[0])
 
     with OUT_H.open("w", encoding="utf-8") as f:
-        f.write("""\
+        f.write(
+f"""\
 #pragma once
 
 #include <Arduino.h>
 
-struct ShinonomeGlyphIndex {
+struct ShinonomeGlyphIndex {{
     uint32_t codepoint;
     uint32_t bitmapOffset;
     uint8_t width;
-};
+}};
 
-constexpr int SHINONOME_HEIGHT = 16;
+constexpr int SHINONOME_HEIGHT = {FONT_SIZE};
 
 """)
         # bitmap本体
@@ -111,7 +135,10 @@ constexpr int SHINONOME_HEIGHT = 16;
 
         for codepoint, width, bitmap in glyphs:
             # '\' が行末に来ないよう [] で囲む
-            f.write(f"    // U+{codepoint:04X} [{chr(codepoint)}]\n" f"    ")
+            f.write(
+                f"    // U+{codepoint:04X} [{chr(codepoint)}]\n"
+                f"    "
+            )
             f.write(", ".join(f"0x{b:02X}" for b in bitmap))
             f.write(",\n")
 
@@ -121,17 +148,29 @@ constexpr int SHINONOME_HEIGHT = 16;
         f.write("};\n\n")
 
         # Unicode -> bitmap位置
-        f.write("inline const ShinonomeGlyphIndex " "shinonomeIndex[] PROGMEM = {\n")
+        f.write(
+            "inline const ShinonomeGlyphIndex "
+            "shinonomeIndex[] PROGMEM = {\n"
+        )
 
         for codepoint, offset, width in indices:
-            f.write(f"    {{ 0x{codepoint:04X}, " f"{offset}, {width} }},\n")
+            f.write(
+                f"    {{ 0x{codepoint:04X}, " 
+                f"{offset}, {width} }},\n"
+            )
 
         f.write("};\n\n")
 
         # 文字数
-        f.write("inline constexpr uint16_t " f"SHINONOME_GLYPH_COUNT = {len(glyphs)};\n")
+        f.write(
+            "inline constexpr uint16_t " 
+            f"SHINONOME_GLYPH_COUNT = {len(glyphs)};\n"
+        )
 
-    print(f"{len(glyphs)} glyphs generated")
+    print(
+        f"{len(glyphs)} glyphs generated "
+        f"({FONT_SIZE}px)"
+    )
 
 
 if __name__ == "__main__":

@@ -72,12 +72,12 @@ void ShinonomeFont::drawGlyph(int x, int y, int glyphIndex, uint16_t color) {
     uint32_t offset = pgm_read_dword(&shinonomeIndex[glyphIndex].bitmapOffset);
     uint8_t width = getGlyphWidth(glyphIndex);
 
-    // 半角 8x16
-    if (width == 8) {
-        for (int row = 0; row < 16; row++) {
+    // 半角: 6x12, 7x14, 8x16
+    if (width <= 8) {
+        for (int row = 0; row < SHINONOME_HEIGHT; row++) {
             uint8_t bits = pgm_read_byte(&shinonomeBitmap[offset + row]);
 
-            for (int col = 0; col < 8; col++) {
+            for (int col = 0; col < width; col++) {
                 if (bits & (0x80 >> col)) {
                     Paint_SetPixel(x + col, y + row, color);
                 }
@@ -85,15 +85,15 @@ void ShinonomeFont::drawGlyph(int x, int y, int glyphIndex, uint16_t color) {
         }
     }
 
-    // 全角 16x16
-    else if (width == 16) {
-        for (int row = 0; row < 16; row++) {
+    // 全角: 12x12, 14x14, 16x16
+    else {
+        for (int row = 0; row < SHINONOME_HEIGHT; row++) {
             uint8_t high = pgm_read_byte(&shinonomeBitmap[offset + row * 2]);
             uint8_t low = pgm_read_byte(&shinonomeBitmap[offset + row * 2 + 1]);
 
             uint16_t bits = (static_cast<uint16_t>(high) << 8) | low;
 
-            for (int col = 0; col < 16; col++) {
+            for (int col = 0; col < width; col++) {
                 if (bits & (0x8000 >> col)) {
                     Paint_SetPixel(x + col, y + row, color);
                 }
